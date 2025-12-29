@@ -12,7 +12,7 @@ func GobDump(path string, a any, perm os.FileMode) error {
 	if err := enc.Encode(a); err != nil {
 		return err
 	}
-	err := os.WriteFile(path, buf.Bytes(), 0640)
+	err := os.WriteFile(path, buf.Bytes(), perm)
 	if err != nil {
 		return err
 	}
