@@ -13,10 +13,10 @@ func main() {
 		},
 	}
 
-	if err := GobDump("gob.bin", foo); err != nil {
+	if err := GobDump("gob.bin", foo, 0640); err != nil {
 		panic(err)
 	}
-	if err := GobDumpAtomic("gobatomic.bin", foo); err != nil {
+	if err := GobDumpAtomic("gobatomic.bin", foo, 0640); err != nil {
 		panic(err)
 	}
 }
