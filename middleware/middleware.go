@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+// Implement a custom http.HandlerFunc which returns errors to be caught by
+// the error handling middleware
 type appHandlerFunc func(w http.ResponseWriter, r *http.Request) error
 
 func errorHandlerMiddleware(next appHandlerFunc) http.HandlerFunc {
