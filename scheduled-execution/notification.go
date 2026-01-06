@@ -12,7 +12,7 @@ type Notification struct {
 }
 
 type NotificationStore struct {
-	ID    int
+	ID    int // Saves next notification ID
 	Store []Notification
 	Mu    sync.Mutex
 }
