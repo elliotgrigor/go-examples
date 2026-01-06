@@ -18,7 +18,7 @@ func HandleScheduler(w http.ResponseWriter, r *http.Request) {
 	notifs.Mu.Unlock()
 	fmt.Fprintln(w,
 		`<head><link rel="icon" href="data:,"></head>`,
-		`<p>Notification added, ID:`, notifs.ID, "Quantity:", len(notifs.Store), "</p>",
+		"<p>Notification added, ID:", notifs.ID, "Quantity:", len(notifs.Store), "</p>",
 	)
 	notifs.ID += 1
 }
