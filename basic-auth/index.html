@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Basic Authorization</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+    #login_form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <form id="login_form">
+    <div>Username <input id="login_user" name="user" type="text"></div>
+    <div>Password <input id="login_pass" name="pass" type="password"></div>
+    <input type="submit" value="Log in">
+  </form>
+
+<script>
+  const loginForm = document.getElementById("login_form")
+    .addEventListener("submit", () => {
+      event.preventDefault();
+
+      const loginUser = document.getElementById("login_user").value;
+      const loginPass = document.getElementById("login_pass").value;
+      const b64enc = btoa(`${loginUser}:${loginPass}`);
+
+      fetch("/auth/login", {
+        method: "POST",
+        headers: { "Authorization": "Basic "+b64enc },
+        credentials: "same-origin",
+      })
+      .then(async (resp) => {
+        if (!resp.ok) {
+          // TODO: Alert user of incorrect credentials or server error
+          return;
+        }
+        // TODO: Show a `logging you in` message/spinner
+        // Sleep, allowing cookie to be set
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        window.location.href = "/secret";
+      });
+    });
+</script>
+</body>
+</html>
