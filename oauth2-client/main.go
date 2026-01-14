@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -11,14 +13,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func main() {
-	godotenv.Load()
+type Authenticator struct {
+	*oidc.Provider
+	oauth2.Config
+}
 
+func NewAuthenticator() (*Authenticator, error) {
 	provider, err := oidc.NewProvider(
 		context.Background(),
 		"https://"+os.Getenv("AUTH0_DOMAIN")+"/")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	cfg := oauth2.Config{
@@ -29,5 +34,26 @@ func main() {
 		Endpoint:     provider.Endpoint(),
 	}
 
-	fmt.Println(cfg.AuthCodeURL(rand.Text()))
+	return &Authenticator{
+		Provider: provider,
+		Config:   cfg,
+	}, nil
+}
+
+func main() {
+	godotenv.Load()
+
+	auth, err := NewAuthenticator()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	state := rand.Text()
+	nonce := rand.Text()
+	stateB64 := base64.StdEncoding.EncodeToString([]byte(state))
+	nonceB64 := base64.StdEncoding.EncodeToString([]byte(nonce))
+
+	fmt.Println(auth.Config.AuthCodeURL(
+		stateB64,
+		oauth2.SetAuthURLParam("nonce", nonceB64)))
 }
