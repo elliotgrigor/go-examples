@@ -7,9 +7,12 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 )
+
+const errInternalServerError = "Internal Server Error"
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, `<head><link rel="icon" href="data:,"></head><h1>Hello</h1><a href="/auth/signin">Sign in</a>`)
@@ -29,8 +32,34 @@ func handleSignIn(auth *Authenticator) func(w http.ResponseWriter, r *http.Reque
 
 func handleCallback(auth *Authenticator) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_ = auth
-		// TODO: Use authorization code to get access/id tokens
+		// TODO: A lot of this can be done in an [Authenticator] receiver function
+
+		// Exchange code for a token
+		token, err := auth.Exchange(r.Context(), r.URL.Query().Get("code")) // Use state here?
+		if err != nil {
+			http.Error(w, errInternalServerError, http.StatusInternalServerError)
+			log.Println("handleCallback: failed to exchange code for token")
+		}
+
+		rawIdToken, ok := token.Extra("id_token").(string)
+		if !ok {
+			http.Error(w, errInternalServerError, http.StatusInternalServerError)
+			log.Println("handleCallback: failed to extract raw id token")
+		}
+
+		oidcCfg := &oidc.Config{
+			ClientID: auth.ClientID,
+		}
+		idToken, err := auth.Verifier(oidcCfg).Verify(r.Context(), rawIdToken)
+		if err != nil {
+			http.Error(w, errInternalServerError, http.StatusInternalServerError)
+			log.Println("handleCallback: failed to verify id token")
+		}
+
+		var profile map[string]any
+		idToken.Claims(&profile)
+
+		fmt.Println(profile)
 	}
 }
 
